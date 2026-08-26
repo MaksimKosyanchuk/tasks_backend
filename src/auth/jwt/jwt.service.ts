@@ -12,7 +12,7 @@ export class AuthJwtService {
     signAccessToken(payload: object) {
         return this.jwt.sign(payload, {
             secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-            expiresIn: '15m',
+            expiresIn: '15d',
         });
     }
 

@@ -88,65 +88,67 @@ export class WorkspacesService {
         return this.prisma.workspaceMember.create({
             data: {
                 userId: user.id,
-                workspaceId,
+                workspaceId,    
             },
         });
     }
 
     async leave(workspaceId: string, userId: string) {
-        const member = await this.prisma.workspaceMember.findUnique({
-            where: {
-                userId_workspaceId: {
-                    userId,
-                    workspaceId,
+        return this.prisma.$transaction(async (tx) => {
+            const member = await tx.workspaceMember.findUnique({
+                where: {
+                    userId_workspaceId: {
+                        userId,
+                        workspaceId,
+                    },
                 },
-            },
-        });
+            });
 
-        if (!member) {
-            throw new NotFoundException(
-                'You are not a member of this workspace',
-            );
-        }
+            if (!member) {
+                throw new NotFoundException(
+                    'You are not a member of this workspace',
+                );
+            }
 
-        const membersCount = await this.prisma.workspaceMember.count({
-            where: {
-                workspaceId,
-            },
-        });
-
-        if (membersCount === 1) {
-            const projectsCount = await this.prisma.project.count({
+            const membersCount = await tx.workspaceMember.count({
                 where: {
                     workspaceId,
                 },
             });
 
-            if (projectsCount > 0) {
-                throw new ConflictException(
-                    'You cannot leave a workspace that contains projects',
-                );
+            if (membersCount === 1) {
+                const projectsCount = await tx.project.count({
+                    where: {
+                        workspaceId,
+                    },
+                });
+
+                if (projectsCount > 0) {
+                    throw new ConflictException(
+                        'You cannot leave a workspace that contains projects',
+                    );
+                }
+
+                await tx.workspace.delete({
+                    where: {
+                        id: workspaceId,
+                    },
+                });
+
+                return {
+                    message: 'You left and the workspace was deleted',
+                };
             }
 
-            await this.prisma.workspace.delete({
+            await tx.workspaceMember.delete({
                 where: {
-                    id: workspaceId,
+                    id: member.id,
                 },
             });
 
             return {
-                message: 'You left and the workspace was deleted',
+                message: 'You left the workspace',
             };
-        }
-
-        await this.prisma.workspaceMember.delete({
-            where: {
-                id: member.id,
-            },
         });
-
-        return {
-            message: 'You left the workspace',
-        };
     }
 }
