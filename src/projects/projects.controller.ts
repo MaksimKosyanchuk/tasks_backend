@@ -13,7 +13,9 @@ import type { Request } from 'express';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AddProjectMemberDto } from './dto/add-project-member.dto';
 import { ProjectsService } from './projects.service';
+
 
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(AccessTokenGuard)
@@ -44,6 +46,21 @@ export class ProjectsController {
         return this.projectsService.findAll(
             workspaceId,
             request.user!.id,
+        );
+    }
+
+    @Post(':projectId/members')
+    addMember(
+        @Param('workspaceId') workspaceId: string,
+        @Param('projectId') projectId: string,
+        @Body() dto: AddProjectMemberDto,
+        @Req() request: Request,
+    ) {
+        return this.projectsService.addMember(
+            workspaceId,
+            projectId,
+            request.user!.id,
+            dto.email,
         );
     }
 }
