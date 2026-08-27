@@ -6,6 +6,8 @@ import {
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+import { ProjectRole } from '@prisma/client';
+
 @Injectable()
 export class ProjectsService {
     constructor(
@@ -167,6 +169,93 @@ export class ProjectsService {
                     userId: user.id,
                     projectId,
                     role: 'MEMBER',
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            nickName: true,
+                            email: true,
+                        },
+                    },
+                },
+            });
+        });
+    }
+
+    async updateMemberRole(
+        workspaceId: string,
+        projectId: string,
+        currentUserId: string,
+        targetUserId: string,
+        role: ProjectRole,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const currentMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can change roles',
+                );
+            }
+
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
+
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
+
+            const targetMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: targetUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!targetMember) {
+                throw new NotFoundException(
+                    'Project member not found',
+                );
+            }
+
+            if (
+                targetMember.role === 'OWNER' &&
+                role === 'MEMBER'
+            ) {
+                const ownersCount = await tx.projectMember.count({
+                    where: {
+                        projectId,
+                        role: 'OWNER',
+                    },
+                });
+
+                if (ownersCount <= 1) {
+                    throw new ConflictException(
+                        'Project must have at least one owner',
+                    );
+                }
+            }
+
+            return tx.projectMember.update({
+                where: {
+                    id: targetMember.id,
+                },
+                data: {
+                    role,
                 },
                 include: {
                     user: {

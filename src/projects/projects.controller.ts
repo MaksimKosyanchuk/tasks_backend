@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Param,
+    Patch,
     Post,
     Get,
     Req,
@@ -15,7 +16,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
 import { ProjectsService } from './projects.service';
-
+import { UpdateProjectMemberDto } from './dto/update-project-member.dto';
 
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(AccessTokenGuard)
@@ -63,4 +64,23 @@ export class ProjectsController {
             dto.email,
         );
     }
+
+    @Patch(':projectId/members/:userId')
+    updateMemberRole(
+        @Param('worspaceId') workspaceId: string,
+        @Param('projectId') projectId: string,
+        @Param('userId') targetUserId: string,
+        @Body() dto: UpdateProjectMemberDto,
+        @Req() request: Request
+    ) {
+        return this.projectsService.updateMemberRole(
+            workspaceId,
+            projectId,
+            request.user!.id,
+            targetUserId,
+            dto.role
+        )
+    }
+
+    
 }
