@@ -172,9 +172,9 @@ export class TasksService {
                 },
             });
 
-            if (!currentMember || currentMember.role !== 'OWNER') {
+            if (!currentMember) {
                 throw new ForbiddenException(
-                    'Only project owner can manage tasks',
+                    'You are not a member of this project',
                 );
             }
 
@@ -265,9 +265,9 @@ export class TasksService {
                 },
             });
 
-            if (!currentMember || currentMember.role !== 'OWNER') {
+            if (!currentMember) {
                 throw new ForbiddenException(
-                    'Only project owner can manage tasks',
+                    'You are not a member of this project',
                 );
             }
 
@@ -460,9 +460,9 @@ export class TasksService {
                 },
             });
 
-            if (!currentMember || currentMember.role !== 'OWNER') {
+            if (!currentMember) {
                 throw new ForbiddenException(
-                    'Only project owner can manage tasks',
+                    'You are not a member of this project',
                 );
             }
 
