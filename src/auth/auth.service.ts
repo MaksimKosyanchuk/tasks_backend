@@ -16,31 +16,37 @@ export class AuthService {
     ) {}
 
     async register(dto: RegisterDto) {
-        let existingUser = await this.usersService.findByEmail(dto.email);
+        try{
 
-        if (existingUser) {
-            throw new ConflictException('Email already registered');
+            let existingUser = await this.usersService.findByEmail(dto.email);
+    
+            if (existingUser) {
+                throw new ConflictException('Email already registered');
+            }
+    
+            existingUser = await this.usersService.findByNickName(dto.nickName);
+    
+            if (existingUser) {
+                throw new ConflictException('Nick name already registered');
+            }
+    
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
+    
+            const user = await this.usersService.create(
+                dto.email,
+                dto.nickName,
+                hashedPassword,
+            );
+    
+            return {
+                id: user.id,
+                nickName: user.nickName,
+                email: user.email,
+            };
         }
-
-        existingUser = await this.usersService.findByNickName(dto.nickName);
-
-        if (existingUser) {
-            throw new ConflictException('Nick name already registered');
+        catch (error) {
+            console.log(error);
         }
-
-        const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-        const user = await this.usersService.create(
-            dto.email,
-            dto.nickName,
-            hashedPassword,
-        );
-
-        return {
-            id: user.id,
-            nickName: user.nickName,
-            email: user.email,
-        };
     }
 
     async login(dto: LoginDto) {

@@ -16,6 +16,7 @@ import type { Request } from 'express';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { GetTasksDto } from './dto/get-tasks.dto';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 
 @UseGuards(AccessTokenGuard)
@@ -28,15 +29,13 @@ export class TasksController {
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
         @Req() request: Request,
-        @Query('cursor') cursor?: string,
-        @Query('limit') limit?: string,
+        @Query() query: GetTasksDto,
     ) {
         return this.tasksService.list(
             workspaceId,
             projectId,
             request.user!.id,
-            cursor,
-            limit ? Number(limit) : undefined,
+            query,
         );
     }
 

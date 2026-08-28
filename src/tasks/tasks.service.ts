@@ -6,6 +6,7 @@ import { TaskStatus } from '@prisma/client';
 
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { GetTasksDto } from './dto/get-tasks.dto';
 
 import {
     NotFoundException,
@@ -79,8 +80,7 @@ export class TasksService {
         workspaceId: string,
         projectId: string,
         currentUserId: string,
-        cursor?: string,
-        limit = 20,
+        query: GetTasksDto,
     ) {
         const currentMember = await this.prisma.projectMember.findUnique({
             where: {
@@ -95,15 +95,37 @@ export class TasksService {
             throw new NotFoundException('Project not found');
         }
 
+        const {
+            cursor,
+            limit = 20,
+            status,
+            priority,
+            assigneeId,
+        } = query;
+
         const take = Math.min(Math.max(limit, 1), 50) + 1;
 
         const tasks = await this.prisma.task.findMany({
             where: {
                 projectId,
+
                 project: {
                     workspaceId,
                 },
+
+                ...(status && {
+                    status,
+                }),
+
+                ...(priority && {
+                    priority,
+                }),
+
+                ...(assigneeId && {
+                    assigneeId,
+                }),
             },
+
             orderBy: [
                 {
                     createdAt: 'desc',
@@ -112,7 +134,9 @@ export class TasksService {
                     id: 'desc',
                 },
             ],
+
             take,
+
             ...(cursor && {
                 cursor: {
                     id: cursor,
@@ -122,14 +146,20 @@ export class TasksService {
         });
 
         const hasMore = tasks.length > limit;
-        const items = hasMore ? tasks.slice(0, limit) : tasks;
+
+        const items = hasMore
+            ? tasks.slice(0, limit)
+            : tasks;
 
         return {
             items,
-            nextCursor: hasMore ? (items[items.length - 1]?.id ?? null) : null,
+            nextCursor: hasMore
+                ? (items[items.length - 1]?.id ?? null)
+                : null,
             hasMore,
         };
     }
+    
 
     async create(
         workspaceId: string,
@@ -368,7 +398,6 @@ export class TasksService {
             );
         }
         return task;
-
     }
 
     async getHistory(
