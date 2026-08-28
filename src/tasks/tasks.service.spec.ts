@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, ForbiddenException } from '@nestjs/common';
 
 import { TasksService } from './tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -78,13 +77,6 @@ describe('TasksService', () => {
         };
 
         it('should create task for project owner', async () => {
-            /*
-             * Первый findUnique:
-             * проверка текущего пользователя.
-             *
-             * Второй findUnique:
-             * проверка assignee как project member.
-             */
             prismaMock.projectMember.findUnique
                 .mockResolvedValueOnce({
                     userId: 'user-1',
@@ -137,40 +129,66 @@ describe('TasksService', () => {
             );
         });
 
-        it('should forbid MEMBER from creating task', async () => {
-            prismaMock.projectMember.findUnique.mockResolvedValue({
-                userId: 'user-1',
-                projectId: 'project-1',
-                role: 'MEMBER',
+        it('should create task for project member', async () => {
+            prismaMock.projectMember.findUnique
+                .mockResolvedValueOnce({
+                    userId: 'user-1',
+                    projectId: 'project-1',
+                    role: 'MEMBER',
+                })
+                .mockResolvedValueOnce({
+                    userId: 'user-2',
+                    projectId: 'project-1',
+                    role: 'MEMBER',
+                });
+
+            prismaMock.project.findFirst.mockResolvedValue({
+                id: 'project-1',
+                workspaceId: 'workspace-1',
             });
 
-            await expect(
-                service.create(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                    dto as any,
-                ),
-            ).rejects.toThrow(
-                new ForbiddenException('Only project owner can manage tasks'),
+            prismaMock.user.findUnique.mockResolvedValue({
+                id: 'user-2',
+            });
+
+            prismaMock.workspaceMember.findUnique.mockResolvedValue({
+                userId: 'user-2',
+                workspaceId: 'workspace-1',
+            });
+
+            const task = {
+                id: 'task-1',
+                title: 'Test task',
+                projectId: 'project-1',
+                assigneeId: 'user-2',
+            };
+
+            prismaMock.task.create.mockResolvedValue(task);
+
+            const result = await service.create(
+                'workspace-1',
+                'project-1',
+                'user-1',
+                dto as any,
             );
 
-            expect(prismaMock.task.create).not.toHaveBeenCalled();
+            expect(result).toEqual(task);
+
+            expect(prismaMock.task.create).toHaveBeenCalled();
+
+            expect(realtimeGatewayMock.emitTaskCreated).toHaveBeenCalledWith(
+                'project-1',
+                task,
+            );
         });
 
         it('should reject assignee who is not a project member', async () => {
-            /*
-             * Текущий пользователь — OWNER.
-             */
             prismaMock.projectMember.findUnique
                 .mockResolvedValueOnce({
                     userId: 'user-1',
                     projectId: 'project-1',
                     role: 'OWNER',
                 })
-                /*
-                 * Но assignee не является member проекта.
-                 */
                 .mockResolvedValueOnce(null);
 
             prismaMock.project.findFirst.mockResolvedValue({
@@ -195,9 +213,7 @@ describe('TasksService', () => {
                     dto as any,
                 ),
             ).rejects.toThrow(
-                new ConflictException(
-                    'Assignee is not a member of this project',
-                ),
+                'Assignee is not a member of this project',
             );
 
             expect(prismaMock.task.create).not.toHaveBeenCalled();
@@ -258,20 +274,51 @@ describe('TasksService', () => {
             );
         });
 
-        it('should forbid MEMBER from updating task', async () => {
+        it('should update task for project member', async () => {
             prismaMock.projectMember.findUnique.mockResolvedValue({
                 userId: 'user-1',
                 projectId: 'project-1',
                 role: 'MEMBER',
             });
 
-            await expect(
-                service.update('workspace-1', 'project-1', 'task-1', 'user-1', {
-                    title: 'Updated',
-                } as any),
-            ).rejects.toThrow('Only project owner can manage tasks');
+            prismaMock.project.findFirst.mockResolvedValue({
+                id: 'project-1',
+                workspaceId: 'workspace-1',
+            });
 
-            expect(prismaMock.task.update).not.toHaveBeenCalled();
+            prismaMock.task.findFirst.mockResolvedValue({
+                id: 'task-1',
+                projectId: 'project-1',
+                status: 'TODO',
+            });
+
+            const updatedTask = {
+                id: 'task-1',
+                title: 'Updated task',
+                status: 'TODO',
+                projectId: 'project-1',
+            };
+
+            prismaMock.task.update.mockResolvedValue(updatedTask);
+
+            const result = await service.update(
+                'workspace-1',
+                'project-1',
+                'task-1',
+                'user-1',
+                {
+                    title: 'Updated task',
+                },
+            );
+
+            expect(result).toEqual(updatedTask);
+
+            expect(prismaMock.task.update).toHaveBeenCalled();
+
+            expect(realtimeGatewayMock.emitTaskChanged).toHaveBeenCalledWith(
+                'project-1',
+                updatedTask,
+            );
         });
     });
 
@@ -322,18 +369,50 @@ describe('TasksService', () => {
             );
         });
 
-        it('should forbid MEMBER from deleting task', async () => {
+        it('should delete task for project member', async () => {
             prismaMock.projectMember.findUnique.mockResolvedValue({
                 userId: 'user-1',
                 projectId: 'project-1',
                 role: 'MEMBER',
             });
 
-            await expect(
-                service.delete('workspace-1', 'project-1', 'task-1', 'user-1'),
-            ).rejects.toThrow('Only project owner can manage tasks');
+            prismaMock.project.findFirst.mockResolvedValue({
+                id: 'task-1',
+                workspaceId: 'workspace-1',
+            });
 
-            expect(prismaMock.task.delete).not.toHaveBeenCalled();
+            prismaMock.task.findFirst.mockResolvedValue({
+                id: 'task-1',
+                projectId: 'project-1',
+            });
+
+            const deletedTask = {
+                id: 'task-1',
+                title: 'Deleted task',
+                projectId: 'project-1',
+            };
+
+            prismaMock.task.delete.mockResolvedValue(deletedTask);
+
+            const result = await service.delete(
+                'workspace-1',
+                'project-1',
+                'task-1',
+                'user-1',
+            );
+
+            expect(result).toEqual(deletedTask);
+
+            expect(prismaMock.task.delete).toHaveBeenCalledWith({
+                where: {
+                    id: 'task-1',
+                },
+            });
+
+            expect(realtimeGatewayMock.emitTaskDeleted).toHaveBeenCalledWith(
+                'project-1',
+                'task-1',
+            );
         });
     });
 
@@ -381,6 +460,51 @@ describe('TasksService', () => {
                 nextCursor: null,
                 hasMore: false,
             });
+        });
+
+        it('should pass filters to task query', async () => {
+            prismaMock.projectMember.findUnique.mockResolvedValue({
+                userId: 'user-1',
+                projectId: 'project-1',
+                role: 'MEMBER',
+            });
+
+            prismaMock.task.findMany.mockResolvedValue([]);
+
+            await service.list(
+                'workspace-1',
+                'project-1',
+                'user-1',
+                {
+                    status: 'IN_PROGRESS',
+                    priority: 'HIGH',
+                    assigneeId: 'user-2',
+                    limit: 20,
+                } as any,
+            );
+
+            expect(prismaMock.task.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: {
+                        projectId: 'project-1',
+                        project: {
+                            workspaceId: 'workspace-1',
+                        },
+                        status: 'IN_PROGRESS',
+                        priority: 'HIGH',
+                        assigneeId: 'user-2',
+                    },
+                    take: 21,
+                    orderBy: [
+                        {
+                            createdAt: 'desc',
+                        },
+                        {
+                            id: 'desc',
+                        },
+                    ],
+                }),
+            );
         });
     });
 });

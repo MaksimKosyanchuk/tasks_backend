@@ -116,16 +116,16 @@ export class AuthService {
     }
 
     async logout(refreshToken: string) {
-        let payload: { sub: string };
-
-        try {
-            payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(
-                refreshToken,
-            );
-        } catch {
+        if (!refreshToken) {
             return;
         }
 
-        await this.usersService.clearRefreshTokenHash(payload.sub);
+        try {
+            const payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(refreshToken);
+
+            await this.usersService.clearRefreshTokenHash(payload.sub);
+        } catch {
+            return;
+        }
     }
 }
