@@ -1,44 +1,40 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     Param,
-    Delete,
     Patch,
     Post,
     Req,
-    Query,
     UseGuards,
 } from '@nestjs/common';
 
 import type { Request } from 'express';
 
-import { TasksService } from './tasks.service';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 
+import { CommentsService } from './comments.service';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+
 @UseGuards(AccessTokenGuard)
-@Controller('workspaces/:workspaceId/projects/:projectId/tasks')
-export class TasksController {
-    constructor(
-        private readonly tasksService: TasksService,
-    ) {}
+@Controller('workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments')
+export class CommentsController {
+    constructor(private readonly commentsService: CommentsService) {}
 
     @Get()
     list(
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
+        @Param('taskId') taskId: string,
         @Req() request: Request,
-        @Query('cursor') cursor?: string,
-        @Query('limit') limit?: string,
     ) {
-        return this.tasksService.list(
+        return this.commentsService.list(
             workspaceId,
             projectId,
+            taskId,
             request.user!.id,
-            cursor,
-            limit ? Number(limit) : undefined,
         );
     }
 
@@ -46,60 +42,51 @@ export class TasksController {
     create(
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
+        @Param('taskId') taskId: string,
+        @Body() dto: CreateCommentDto,
         @Req() request: Request,
-        @Body() dto: CreateTaskDto,
     ) {
-        return this.tasksService.create(
+        return this.commentsService.create(
             workspaceId,
             projectId,
+            taskId,
             request.user!.id,
-            dto,
+            dto.content,
         );
     }
 
-    @Patch(':taskId')
+    @Patch(':commentId')
     update(
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
         @Param('taskId') taskId: string,
+        @Param('commentId') commentId: string,
+        @Body() dto: UpdateCommentDto,
         @Req() request: Request,
-        @Body() dto: UpdateTaskDto,
     ) {
-        return this.tasksService.update(
+        return this.commentsService.update(
             workspaceId,
             projectId,
             taskId,
+            commentId,
             request.user!.id,
-            dto,
+            dto.content,
         );
     }
 
-    @Get(':taskId/history')
-    history(
+    @Delete(':commentId')
+    remove(
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
         @Param('taskId') taskId: string,
+        @Param('commentId') commentId: string,
         @Req() request: Request,
     ) {
-        return this.tasksService.getHistory(
+        return this.commentsService.remove(
             workspaceId,
             projectId,
             taskId,
-            request.user!.id,
-        );
-    }
-
-    @Delete(':taskId')
-    delete(
-        @Param('workspaceId') workspaceId: string,
-        @Param('projectId') projectId: string,
-        @Param('taskId') taskId: string,
-        @Req() request: Request,
-    ) {
-        return this.tasksService.delete(
-            workspaceId,
-            projectId,
-            taskId,
+            commentId,
             request.user!.id,
         );
     }
