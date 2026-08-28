@@ -10,116 +10,124 @@ import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly authJwtService: AuthJwtService,
-    ) {}
+	constructor(
+		private readonly usersService: UsersService,
+		private readonly authJwtService: AuthJwtService,
+	) {}
 
-    async register(dto: RegisterDto) {
-        const existingUser = await this.usersService.findByEmail(dto.email);
+	async register(dto: RegisterDto) {
+		let existingUser = await this.usersService.findByEmail(dto.email);
 
-        if (existingUser) {
-            throw new ConflictException('Email already registered');
-        }
+		if (existingUser) {
+			throw new ConflictException('Email already registered');
+		}
+		
+		existingUser = await this.usersService.findByNickName(dto.nickName)
+		
+		if (existingUser) {
+			throw new ConflictException('Nick name already registered');
+		}
 
-        const hashedPassword = await bcrypt.hash(dto.password, 10);
+		const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-        const user = await this.usersService.create(
-            dto.email,
-            dto.nickName,
-            hashedPassword,
-        );
 
-        return {
-            id: user.id,
-            nickName: user.nickName,
-            email: user.email,
-        };
-    }
 
-    async login(dto: LoginDto) {
-        const user = await this.usersService.findByEmail(dto.email);
+		const user = await this.usersService.create(
+			dto.email,
+			dto.nickName,
+			hashedPassword,
+		);
 
-        if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
+		return {
+			id: user.id,
+			nickName: user.nickName,
+			email: user.email,
+		};
+	}
 
-        const passwordMatches = await bcrypt.compare(
-            dto.password,
-            user.password,
-        );
+	async login(dto: LoginDto) {
+		const user = await this.usersService.findByEmail(dto.email);
 
-        if (!passwordMatches) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
+		if (!user) {
+			throw new UnauthorizedException('Invalid credentials');
+		}
 
-        const accessToken = this.authJwtService.signAccessToken({
-            sub: user.id,
-        });
+		const passwordMatches = await bcrypt.compare(
+			dto.password,
+			user.password,
+		);
 
-        const refreshToken = this.authJwtService.signRefreshToken({
-            sub: user.id,
-        });
+		if (!passwordMatches) {
+			throw new UnauthorizedException('Invalid credentials');
+		}
 
-        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+		const accessToken = this.authJwtService.signAccessToken({
+			sub: user.id,
+		});
 
-        await this.usersService.updateRefreshTokenHash(
-            user.id,
-            refreshTokenHash,
-        );
+		const refreshToken = this.authJwtService.signRefreshToken({
+			sub: user.id,
+		});
 
-        return {
-            accessToken,
-            refreshToken,
-        };
-    }
+		const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
-    async refresh(refreshToken: string) {
-        let payload: { sub: string };
+		await this.usersService.updateRefreshTokenHash(
+			user.id,
+			refreshTokenHash,
+		);
 
-        try {
-            payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(
-                refreshToken,
-            );
-        } catch {
-            throw new UnauthorizedException('Invalid refresh token');
-        }
+		return {
+			accessToken,
+			refreshToken,
+		};
+	}
 
-        const user = await this.usersService.findById(payload.sub);
+	async refresh(refreshToken: string) {
+		let payload: { sub: string };
 
-        if (!user || !user.refreshTokenHash) {
-            throw new UnauthorizedException('Invalid refresh token');
-        }
+		try {
+			payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(
+				refreshToken,
+			);
+		} catch {
+			throw new UnauthorizedException('Invalid refresh token');
+		}
 
-        const tokenMatches = await bcrypt.compare(
-            refreshToken,
-            user.refreshTokenHash,
-        );
+		const user = await this.usersService.findById(payload.sub);
 
-        if (!tokenMatches) {
-            throw new UnauthorizedException('Invalid refresh token');
-        }
+		if (!user || !user.refreshTokenHash) {
+			throw new UnauthorizedException('Invalid refresh token');
+		}
 
-        const accessToken = this.authJwtService.signAccessToken({
-            sub: user.id,
-        });
+		const tokenMatches = await bcrypt.compare(
+			refreshToken,
+			user.refreshTokenHash,
+		);
 
-        return {
-            accessToken,
-        };
-    }
+		if (!tokenMatches) {
+			throw new UnauthorizedException('Invalid refresh token');
+		}
 
-    async logout(refreshToken: string) {
-        let payload: { sub: string };
+		const accessToken = this.authJwtService.signAccessToken({
+			sub: user.id,
+		});
 
-        try {
-            payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(
-                refreshToken,
-            );
-        } catch {
-            return;
-        }
+		return {
+			accessToken,
+		};
+	}
 
-        await this.usersService.clearRefreshTokenHash(payload.sub);
-    }
+	async logout(refreshToken: string) {
+		let payload: { sub: string };
+
+		try {
+			payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(
+				refreshToken,
+			);
+		} catch {
+			return;
+		}
+
+		await this.usersService.clearRefreshTokenHash(payload.sub);
+	}
 }

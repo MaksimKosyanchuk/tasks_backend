@@ -5,6 +5,7 @@ import {
     Delete,
     Param,
     Get,
+    Patch,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { AddMemberDto } from './dto/add-member.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 
 @Controller('workspaces')
 @UseGuards(AccessTokenGuard)
@@ -38,6 +40,30 @@ export class WorkspacesController {
     @Get()
     findAll(@Req() request: Request) {
         return this.workspacesService.findAll(request.user!.id)
+    }
+
+    @Patch(':id')
+    update(
+        @Param('id') workspaceId: string,
+        @Body() dto: UpdateWorkspaceDto,
+        @Req() request: Request,
+    ) {
+        return this.workspacesService.update(
+            workspaceId,
+            request.user!.id,
+            dto.name,
+        );
+    }
+
+    @Delete(':id')
+    delete(
+        @Param('id') workspaceId: string,
+        @Req() request: Request,
+    ) {
+        return this.workspacesService.delete(
+            workspaceId,
+            request.user!.id,
+        );
     }
 
     @Post(':id/members')

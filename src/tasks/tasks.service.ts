@@ -3,15 +3,17 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
-import { NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+    NotFoundException,
+    ConflictException,
+    ForbiddenException,
+} from '@nestjs/common';
 
 @Injectable()
 export class TasksService {
-
-    constructor(
-        private readonly prisma: PrismaService,
-    ) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(
         workspaceId: string,
@@ -21,43 +23,42 @@ export class TasksService {
     ) {
         return this.prisma.$transaction(async (tx) => {
             const currentMember = await tx.projectMember.findUnique({
-            where: {
-                userId_projectId: {
-                    userId: currentUserId,
-                    projectId,
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
+                        projectId,
+                    },
                 },
-            },
-        });
+            });
 
-        if (!currentMember || currentMember.role !== 'OWNER') {
-            throw new ForbiddenException(
-                'Only project owner can manage tasks',
-            );
-        }
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can manage tasks',
+                );
+            }
 
-        const project = await tx.project.findFirst({
-            where: {
-                id: projectId,
-                workspaceId,
-            },
-        });
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
 
-        if (!project) {
-            throw new NotFoundException('Project not found');
-        }
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
 
-        const assignee = await tx.user.findUnique({
-            where: {
-                id: dto.assigneeId,
-            },
-        });
+            const assignee = await tx.user.findUnique({
+                where: {
+                    id: dto.assigneeId,
+                },
+            });
 
-        if (!assignee) {
-            throw new NotFoundException('Assignee not found');
-        }
+            if (!assignee) {
+                throw new NotFoundException('Assignee not found');
+            }
 
-        const workspaceMember =
-            await tx.workspaceMember.findUnique({
+            const workspaceMember = await tx.workspaceMember.findUnique({
                 where: {
                     userId_workspaceId: {
                         userId: dto.assigneeId,
@@ -66,14 +67,13 @@ export class TasksService {
                 },
             });
 
-        if (!workspaceMember) {
-            throw new ConflictException(
-                'Assignee is not a member of this workspace',
-            );
-        }
+            if (!workspaceMember) {
+                throw new ConflictException(
+                    'Assignee is not a member of this workspace',
+                );
+            }
 
-        const projectMember =
-            await tx.projectMember.findUnique({
+            const projectMember = await tx.projectMember.findUnique({
                 where: {
                     userId_projectId: {
                         userId: dto.assigneeId,
@@ -82,22 +82,184 @@ export class TasksService {
                 },
             });
 
-        if (!projectMember) {
-            throw new ConflictException(
-                'Assignee is not a member of this project',
-            );
-        }
+            if (!projectMember) {
+                throw new ConflictException(
+                    'Assignee is not a member of this project',
+                );
+            }
 
-        return tx.task.create({
-            data: {
-                title: dto.title,
-                description: dto.description,
-                priority: dto.priority,
-                dueDate: new Date(dto.dueDate),
-                assigneeId: dto.assigneeId,
-                projectId,
-            },
+            return tx.task.create({
+                data: {
+                    title: dto.title,
+                    description: dto.description,
+                    priority: dto.priority,
+                    dueDate: new Date(dto.dueDate),
+                    assigneeId: dto.assigneeId,
+                    projectId,
+                },
+            });
         });
-        })
+    }
+
+    async update(
+        workspaceId: string,
+        projectId: string,
+        taskId: string,
+        currentUserId: string,
+        dto: UpdateTaskDto,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const currentMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can manage tasks',
+                );
+            }
+
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
+
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
+
+            const task = await tx.task.findFirst({
+                where: {
+                    id: taskId,
+                    projectId,
+                },
+            });
+
+            if (!task) {
+                throw new NotFoundException('Task not found');
+            }
+
+            if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
+                const workspaceMember = await tx.workspaceMember.findUnique({
+                    where: {
+                        userId_workspaceId: {
+                            userId: dto.assigneeId,
+                            workspaceId,
+                        },
+                    },
+                });
+
+                if (!workspaceMember) {
+                    throw new ConflictException(
+                        'Assignee is not a member of this workspace',
+                    );
+                }
+
+                const projectMember = await tx.projectMember.findUnique({
+                    where: {
+                        userId_projectId: {
+                            userId: dto.assigneeId,
+                            projectId,
+                        },
+                    },
+                });
+
+                if (!projectMember) {
+                    throw new ConflictException(
+                        'Assignee is not a member of this project',
+                    );
+                }
+            }
+
+            return tx.task.update({
+                where: {
+                    id: taskId,
+                },
+                data: {
+                    ...(dto.title !== undefined && {
+                        title: dto.title,
+                    }),
+
+                    ...(dto.description !== undefined && {
+                        description: dto.description,
+                    }),
+
+                    ...(dto.status !== undefined && {
+                        status: dto.status,
+                    }),
+
+                    ...(dto.priority !== undefined && {
+                        priority: dto.priority,
+                    }),
+
+                    ...(dto.dueDate !== undefined && {
+                        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+                    }),
+
+                    ...(dto.assigneeId !== undefined && {
+                        assigneeId: dto.assigneeId,
+                    }),
+                },
+            });
+        });
+    }
+
+    async delete(
+        workspaceId: string,
+        projectId: string,
+        taskId: string,
+        currentUserId: string,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const currentMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can manage tasks',
+                );
+            }
+
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
+
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
+
+            const task = await tx.task.findFirst({
+                where: {
+                    id: taskId,
+                    projectId,
+                },
+            });
+
+            if (!task) {
+                throw new NotFoundException('Task not found');
+            }
+
+            return tx.task.delete({
+                where: {
+                    id: taskId,
+                },
+            });
+        });
     }
 }

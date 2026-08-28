@@ -10,9 +10,7 @@ import { ProjectRole } from '@prisma/client';
 
 @Injectable()
 export class ProjectsService {
-    constructor(
-        private readonly prisma: PrismaService,
-    ) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(
         workspaceId: string,
@@ -52,7 +50,14 @@ export class ProjectsService {
                 },
             });
 
-            return project;
+            return tx.project.findUnique({
+                where: {
+                    id: project.id,
+                },
+                include: {
+                    members: true,
+                },
+            });
         });
     }
 
@@ -73,6 +78,11 @@ export class ProjectsService {
         return this.prisma.project.findMany({
             where: {
                 workspaceId,
+                members: {
+                    some: {
+                        userId,
+                    },
+                },
             },
             include: {
                 members: {
@@ -148,15 +158,14 @@ export class ProjectsService {
                 );
             }
 
-            const existingProjectMember =
-                await tx.projectMember.findUnique({
-                    where: {
-                        userId_projectId: {
-                            userId: user.id,
-                            projectId,
-                        },
+            const existingProjectMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: user.id,
+                        projectId,
                     },
-                });
+                },
+            });
 
             if (existingProjectMember) {
                 throw new ConflictException(
@@ -267,6 +276,207 @@ export class ProjectsService {
                     },
                 },
             });
+        });
+    }
+
+    async removeMember(
+        workspaceId: string,
+        projectId: string,
+        currentUserId: string,
+        targetUserId: string,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const currentMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can remove members',
+                );
+            }
+
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
+
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
+
+            const targetMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: targetUserId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!targetMember) {
+                throw new NotFoundException(
+                    'Project member not found',
+                );
+            }
+
+            if (targetMember.role === 'OWNER') {
+                const ownersCount = await tx.projectMember.count({
+                    where: {
+                        projectId,
+                        role: 'OWNER',
+                    },
+                });
+
+                if (ownersCount <= 1) {
+                    throw new ConflictException(
+                        'Project must have at least one owner',
+                    );
+                }
+            }
+
+            return tx.projectMember.delete({
+                where: {
+                    id: targetMember.id,
+                },
+            });
+        });
+    }
+
+    async getById(
+        workspaceId: string,
+        projectId: string,
+        userId: string,
+    ) {
+        const member = await this.prisma.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId,
+                },
+            },
+        });
+
+        if (!member) {
+            throw new NotFoundException('Project not found');
+        }
+
+        const project = await this.prisma.project.findFirst({
+            where: {
+                id: projectId,
+                workspaceId,
+            },
+            include: {
+                workspace: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                nickName: true,
+                                email: true,
+                            },
+                        },
+                    },
+                },
+                tasks: true,
+            },
+        });
+
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        return project;
+    }
+
+    async update(
+        workspaceId: string,
+        projectId: string,
+        userId: string,
+        name?: string,
+        description?: string | null,
+    ) {
+        const currentMember = await this.prisma.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId,
+                },
+            },
+        });
+
+        if (!currentMember || currentMember.role !== 'OWNER') {
+            throw new ForbiddenException('Only project owner can manage project');
+        }
+
+        const project = await this.prisma.project.findFirst({
+            where: {
+                id: projectId,
+                workspaceId,
+            },
+        });
+
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        return this.prisma.project.update({
+            where: {
+                id: projectId,
+            },
+            data: {
+                ...(name !== undefined && { name }),
+                ...(description !== undefined && { description }),
+            },
+        });
+    }
+
+    async delete(
+        workspaceId: string,
+        projectId: string,
+        userId: string,
+    ) {
+        const currentMember = await this.prisma.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId,
+                },
+            },
+        });
+
+        if (!currentMember || currentMember.role !== 'OWNER') {
+            throw new ForbiddenException('Only project owner can manage project');
+        }
+
+        const project = await this.prisma.project.findFirst({
+            where: {
+                id: projectId,
+                workspaceId,
+            },
+        });
+
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        return this.prisma.project.delete({
+            where: {
+                id: projectId,
+            },
         });
     }
 }

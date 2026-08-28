@@ -48,6 +48,30 @@ export class WorkspacesService {
         });
     }
 
+    async update(workspaceId: string, userId: string, name: string) {
+        const member = await this.prisma.workspaceMember.findUnique({
+            where: {
+                userId_workspaceId: {
+                    userId,
+                    workspaceId,
+                },
+            },
+        });
+
+        if (!member) {
+            throw new NotFoundException('Workspace not found');
+        }
+
+        return this.prisma.workspace.update({
+            where: {
+                id: workspaceId,
+            },
+            data: {
+                name,
+            },
+        });
+    }
+
     async addMember(workspaceId: string, currentUserId: string, email: string) {
         const currentMember = await this.prisma.workspaceMember.findUnique({
             where: {
@@ -149,6 +173,27 @@ export class WorkspacesService {
             return {
                 message: 'You left the workspace',
             };
+        });
+    }
+
+    async delete(workspaceId: string, userId: string) {
+        const member = await this.prisma.workspaceMember.findUnique({
+            where: {
+                userId_workspaceId: {
+                    userId,
+                    workspaceId,
+                },
+            },
+        });
+
+        if (!member) {
+            throw new NotFoundException('Workspace not found');
+        }
+
+        return this.prisma.workspace.delete({
+            where: {
+                id: workspaceId,
+            },
         });
     }
 }
