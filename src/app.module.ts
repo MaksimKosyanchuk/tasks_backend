@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
@@ -13,12 +15,27 @@ import { TasksModule } from './tasks/tasks.module';
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+
         PrismaModule,
         UsersModule,
         AuthModule,
         WorkspacesModule,
         ProjectsModule,
         TasksModule,
+
+        ThrottlerModule.forRoot([
+            {
+                ttl: 60_000,
+                limit: 10,
+            },
+        ]),
+    ],
+
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
 })
 export class AppModule {}

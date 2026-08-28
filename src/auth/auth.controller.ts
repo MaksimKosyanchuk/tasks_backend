@@ -5,6 +5,9 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UnauthorizedException } from '@nestjs/common';
 
+import { UseGuards } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
@@ -15,6 +18,12 @@ export class AuthController {
     }
 
     @Post('login')
+    @Throttle({
+        default: {
+            ttl: 60_000,
+            limit: 5,
+        },
+    })
     async login(
         @Body() dto: LoginDto,
         @Res({ passthrough: true }) response: Response,
