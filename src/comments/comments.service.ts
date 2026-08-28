@@ -119,7 +119,9 @@ export class CommentsService {
             });
 
             if (!currentMember || currentMember.role !== 'OWNER') {
-                throw new ForbiddenException('Only comment author can edit this comment');
+                throw new ForbiddenException(
+                    'Only comment author can edit this comment',
+                );
             }
         }
 
@@ -141,7 +143,11 @@ export class CommentsService {
             },
         });
 
-        this.realtimeGateway.emitCommentUpdated(projectId, taskId, updatedComment);
+        this.realtimeGateway.emitCommentUpdated(
+            projectId,
+            taskId,
+            updatedComment,
+        );
 
         return updatedComment;
     }
@@ -182,7 +188,9 @@ export class CommentsService {
             });
 
             if (!currentMember || currentMember.role !== 'OWNER') {
-                throw new ForbiddenException('Only comment author can delete this comment');
+                throw new ForbiddenException(
+                    'Only comment author can delete this comment',
+                );
             }
         }
 

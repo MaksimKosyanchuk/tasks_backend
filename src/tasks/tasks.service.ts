@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { TaskRealtimeGateway } from './task-realtime.gateway';
 import { TaskStatus } from '@prisma/client';
 
@@ -229,145 +229,146 @@ export class TasksService {
         dto: UpdateTaskDto,
     ) {
         let statusHistory: unknown = null;
-        try {
-            const task = await this.prisma.$transaction(async (tx) => {
-                const currentMember = await tx.projectMember.findUnique({
-                    where: {
-                        userId_projectId: {
-                            userId: currentUserId,
-                            projectId,
-                        },
-                    },
-                });
-    
-                if (!currentMember || currentMember.role !== 'OWNER') {
-                    throw new ForbiddenException(
-                        'Only project owner can manage tasks',
-                    );
-                }
-    
-                const project = await tx.project.findFirst({
-                    where: {
-                        id: projectId,
-                        workspaceId,
-                    },
-                });
-    
-                if (!project) {
-                    throw new NotFoundException('Project not found');
-                }
-    
-                const task = await tx.task.findFirst({
-                    where: {
-                        id: taskId,
+
+        const task = await this.prisma.$transaction(async (tx) => {
+            const currentMember = await tx.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: currentUserId,
                         projectId,
                     },
-                });
-    
-                if (!task) {
-                    throw new NotFoundException('Task not found');
-                }
-    
-                const oldStatus = task.status;
-    
-                if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
-                    const workspaceMember = await tx.workspaceMember.findUnique({
+                },
+            });
+
+            if (!currentMember || currentMember.role !== 'OWNER') {
+                throw new ForbiddenException(
+                    'Only project owner can manage tasks',
+                );
+            }
+
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    workspaceId,
+                },
+            });
+
+            if (!project) {
+                throw new NotFoundException('Project not found');
+            }
+
+            const task = await tx.task.findFirst({
+                where: {
+                    id: taskId,
+                    projectId,
+                },
+            });
+
+            if (!task) {
+                throw new NotFoundException('Task not found');
+            }
+
+            const oldStatus = task.status;
+
+            if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
+                const workspaceMember = await tx.workspaceMember.findUnique(
+                    {
                         where: {
                             userId_workspaceId: {
                                 userId: dto.assigneeId,
                                 workspaceId,
                             },
                         },
-                    });
-    
-                    if (!workspaceMember) {
-                        throw new ConflictException(
-                            'Assignee is not a member of this workspace',
-                        );
-                    }
-    
-                    const projectMember = await tx.projectMember.findUnique({
-                        where: {
-                            userId_projectId: {
-                                userId: dto.assigneeId,
-                                projectId,
-                            },
-                        },
-                    });
-    
-                    if (!projectMember) {
-                        throw new ConflictException(
-                            'Assignee is not a member of this project',
-                        );
-                    }
-                }
-    
-                const updatedTask = await tx.task.update({
-                    where: {
-                        id: taskId,
                     },
-                    data: {
-                        ...(dto.title !== undefined && {
-                            title: dto.title,
-                        }),
-    
-                        ...(dto.description !== undefined && {
-                            description: dto.description,
-                        }),
-    
-                        ...(dto.status !== undefined && {
-                            status: dto.status,
-                        }),
-    
-                        ...(dto.priority !== undefined && {
-                            priority: dto.priority,
-                        }),
-    
-                        ...(dto.dueDate !== undefined && {
-                            dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-                        }),
-    
-                        ...(dto.assigneeId !== undefined && {
-                            assigneeId: dto.assigneeId,
-                        }),
+                );
+
+                if (!workspaceMember) {
+                    throw new ConflictException(
+                        'Assignee is not a member of this workspace',
+                    );
+                }
+
+                const projectMember = await tx.projectMember.findUnique({
+                    where: {
+                        userId_projectId: {
+                            userId: dto.assigneeId,
+                            projectId,
+                        },
                     },
                 });
-    
-                if (dto.status !== undefined && dto.status !== oldStatus) {
-                    statusHistory = await (
-                        tx as PrismaWithTaskHistory
-                    ).taskStatusHistory.create({
-                        data: {
-                            taskId,
-                            changedById: currentUserId,
-                            oldStatus,
-                            newStatus: dto.status,
-                        },
-                        include: {
-                            changedBy: {
-                                select: {
-                                    id: true,
-                                    nickName: true,
-                                    email: true,
-                                },
+
+                if (!projectMember) {
+                    throw new ConflictException(
+                        'Assignee is not a member of this project',
+                    );
+                }
+            }
+
+            const updatedTask = await tx.task.update({
+                where: {
+                    id: taskId,
+                },
+                data: {
+                    ...(dto.title !== undefined && {
+                        title: dto.title,
+                    }),
+
+                    ...(dto.description !== undefined && {
+                        description: dto.description,
+                    }),
+
+                    ...(dto.status !== undefined && {
+                        status: dto.status,
+                    }),
+
+                    ...(dto.priority !== undefined && {
+                        priority: dto.priority,
+                    }),
+
+                    ...(dto.dueDate !== undefined && {
+                        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+                    }),
+
+                    ...(dto.assigneeId !== undefined && {
+                        assigneeId: dto.assigneeId,
+                    }),
+                },
+            });
+
+            if (dto.status !== undefined && dto.status !== oldStatus) {
+                statusHistory = await (
+                    tx as PrismaWithTaskHistory
+                ).taskStatusHistory.create({
+                    data: {
+                        taskId,
+                        changedById: currentUserId,
+                        oldStatus,
+                        newStatus: dto.status,
+                    },
+                    include: {
+                        changedBy: {
+                            select: {
+                                id: true,
+                                nickName: true,
+                                email: true,
                             },
                         },
-                    });
-                }
-    
-                return updatedTask;
-            });
-            this.realtimeGateway.emitTaskChanged(projectId, task);
-    
-    
-            if (statusHistory) {
-                this.realtimeGateway.emitHistoryCreated(projectId, statusHistory);
+                    },
+                });
             }
-            return task;
+
+            return updatedTask;
+        });
+        this.realtimeGateway.emitTaskChanged(projectId, task);
+
+        if (statusHistory) {
+            this.realtimeGateway.emitHistoryCreated(
+                projectId,
+                statusHistory,
+            );
         }
-        catch(error) {
-            console.log(error);
-        }
+        return task;
+
     }
 
     async getHistory(

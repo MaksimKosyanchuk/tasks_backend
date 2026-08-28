@@ -14,14 +14,12 @@ interface AccessTokenPayload {
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
-    constructor(
-        private readonly authJwtService: AuthJwtService,
-    ) {}
+    constructor(private readonly authJwtService: AuthJwtService) {}
 
     canActivate(context: ExecutionContext): boolean {
         const request = context.switchToHttp().getRequest<Request>();
 
-        const authorization = request.headers.authorization;    
+        const authorization = request.headers.authorization;
 
         if (!authorization) {
             throw new UnauthorizedException('Access token not provided');

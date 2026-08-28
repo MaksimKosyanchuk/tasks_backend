@@ -21,9 +21,7 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 @UseGuards(AccessTokenGuard)
 @Controller('workspaces/:workspaceId/projects/:projectId/tasks')
 export class TasksController {
-    constructor(
-        private readonly tasksService: TasksService,
-    ) {}
+    constructor(private readonly tasksService: TasksService) {}
 
     @Get()
     list(

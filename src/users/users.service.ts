@@ -12,13 +12,11 @@ export class UsersService {
     }
 
     async findByNickName(nickName: string) {
-        return this.prisma.user.findUnique(
-            {
-                where: {
-                    nickName
-                }
-            }
-        )
+        return this.prisma.user.findUnique({
+            where: {
+                nickName,
+            },
+        });
     }
 
     async findById(id: string) {
@@ -37,10 +35,7 @@ export class UsersService {
         });
     }
 
-    async updateRefreshTokenHash(
-        userId: string,
-        refreshTokenHash: string,
-    ) {
+    async updateRefreshTokenHash(userId: string, refreshTokenHash: string) {
         return this.prisma.user.update({
             where: { id: userId },
             data: {

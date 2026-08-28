@@ -22,24 +22,16 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 @Controller('workspaces')
 @UseGuards(AccessTokenGuard)
 export class WorkspacesController {
-    constructor(
-        private readonly workspacesService: WorkspacesService,
-    ) {}
+    constructor(private readonly workspacesService: WorkspacesService) {}
 
     @Post()
-    create(
-        @Body() dto: CreateWorkspaceDto,
-        @Req() request: Request,
-    ) {
-        return this.workspacesService.create(
-            dto.name,
-            request.user!.id,
-        );
+    create(@Body() dto: CreateWorkspaceDto, @Req() request: Request) {
+        return this.workspacesService.create(dto.name, request.user!.id);
     }
 
     @Get()
     findAll(@Req() request: Request) {
-        return this.workspacesService.findAll(request.user!.id)
+        return this.workspacesService.findAll(request.user!.id);
     }
 
     @Patch(':id')
@@ -56,14 +48,8 @@ export class WorkspacesController {
     }
 
     @Delete(':id')
-    delete(
-        @Param('id') workspaceId: string,
-        @Req() request: Request,
-    ) {
-        return this.workspacesService.delete(
-            workspaceId,
-            request.user!.id,
-        );
+    delete(@Param('id') workspaceId: string, @Req() request: Request) {
+        return this.workspacesService.delete(workspaceId, request.user!.id);
     }
 
     @Post(':id/members')
@@ -80,13 +66,7 @@ export class WorkspacesController {
     }
 
     @Delete(':id/members/me')
-    leave(
-        @Param('id') workspaceId: string,
-        @Req() request: Request,
-    ) {
-        return this.workspacesService.leave(
-            workspaceId,
-            request.user!.id,
-        );
+    leave(@Param('id') workspaceId: string, @Req() request: Request) {
+        return this.workspacesService.leave(workspaceId, request.user!.id);
     }
 }

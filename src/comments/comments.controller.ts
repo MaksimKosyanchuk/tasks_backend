@@ -19,7 +19,9 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @UseGuards(AccessTokenGuard)
-@Controller('workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments')
+@Controller(
+    'workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments',
+)
 export class CommentsController {
     constructor(private readonly commentsService: CommentsService) {}
 

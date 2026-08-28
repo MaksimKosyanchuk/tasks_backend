@@ -1,7 +1,4 @@
-import {
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -29,9 +26,7 @@ export class ProjectsService {
             });
 
             if (!member) {
-                throw new NotFoundException(
-                    'Workspace not found',
-                );
+                throw new NotFoundException('Workspace not found');
             }
 
             const project = await tx.project.create({
@@ -236,15 +231,10 @@ export class ProjectsService {
             });
 
             if (!targetMember) {
-                throw new NotFoundException(
-                    'Project member not found',
-                );
+                throw new NotFoundException('Project member not found');
             }
 
-            if (
-                targetMember.role === 'OWNER' &&
-                role === 'MEMBER'
-            ) {
+            if (targetMember.role === 'OWNER' && role === 'MEMBER') {
                 const ownersCount = await tx.projectMember.count({
                     where: {
                         projectId,
@@ -322,9 +312,7 @@ export class ProjectsService {
             });
 
             if (!targetMember) {
-                throw new NotFoundException(
-                    'Project member not found',
-                );
+                throw new NotFoundException('Project member not found');
             }
 
             if (targetMember.role === 'OWNER') {
@@ -350,11 +338,7 @@ export class ProjectsService {
         });
     }
 
-    async getById(
-        workspaceId: string,
-        projectId: string,
-        userId: string,
-    ) {
+    async getById(workspaceId: string, projectId: string, userId: string) {
         const member = await this.prisma.projectMember.findUnique({
             where: {
                 userId_projectId: {
@@ -419,7 +403,9 @@ export class ProjectsService {
         });
 
         if (!currentMember || currentMember.role !== 'OWNER') {
-            throw new ForbiddenException('Only project owner can manage project');
+            throw new ForbiddenException(
+                'Only project owner can manage project',
+            );
         }
 
         const project = await this.prisma.project.findFirst({
@@ -444,11 +430,7 @@ export class ProjectsService {
         });
     }
 
-    async delete(
-        workspaceId: string,
-        projectId: string,
-        userId: string,
-    ) {
+    async delete(workspaceId: string, projectId: string, userId: string) {
         const currentMember = await this.prisma.projectMember.findUnique({
             where: {
                 userId_projectId: {
@@ -459,7 +441,9 @@ export class ProjectsService {
         });
 
         if (!currentMember || currentMember.role !== 'OWNER') {
-            throw new ForbiddenException('Only project owner can manage project');
+            throw new ForbiddenException(
+                'Only project owner can manage project',
+            );
         }
 
         const project = await this.prisma.project.findFirst({

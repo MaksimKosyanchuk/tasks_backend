@@ -23,9 +23,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(AccessTokenGuard)
 export class ProjectsController {
-    constructor(
-        private readonly projectsService: ProjectsService,
-    ) {}
+    constructor(private readonly projectsService: ProjectsService) {}
 
     @Post()
     create(
@@ -46,10 +44,7 @@ export class ProjectsController {
         @Param('workspaceId') workspaceId: string,
         @Req() request: Request,
     ) {
-        return this.projectsService.findAll(
-            workspaceId,
-            request.user!.id,
-        );
+        return this.projectsService.findAll(workspaceId, request.user!.id);
     }
 
     @Post(':projectId/members')
@@ -90,9 +85,13 @@ export class ProjectsController {
         @Param('projectId') projectId: string,
         @Param('userId') memberId: string,
         @Req() request: Request,
-
     ) {
-        return this.projectsService.removeMember(workspaceId, projectId, request.user!.id, memberId)
+        return this.projectsService.removeMember(
+            workspaceId,
+            projectId,
+            request.user!.id,
+            memberId,
+        );
     }
 
     @Patch(':projectId')
@@ -129,8 +128,11 @@ export class ProjectsController {
         @Param('workspaceId') workspaceId: string,
         @Param('projectId') projectId: string,
         @Req() request: Request,
-    )
-    {
-        return this.projectsService.getById(workspaceId, projectId, request.user!.id)
+    ) {
+        return this.projectsService.getById(
+            workspaceId,
+            projectId,
+            request.user!.id,
+        );
     }
 }

@@ -14,8 +14,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import { AuthJwtService } from 'src/auth/jwt/jwt.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthJwtService } from '../auth/jwt/jwt.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 type ProjectEvent = {
     type:
@@ -60,9 +60,9 @@ export class TaskRealtimeGateway
         }
 
         try {
-            const payload = this.authJwtService.verifyAccessToken<{ sub: string }>(
-                token,
-            );
+            const payload = this.authJwtService.verifyAccessToken<{
+                sub: string;
+            }>(token);
 
             client.data.userId = payload.sub;
         } catch {
@@ -171,7 +171,9 @@ export class TaskRealtimeGateway
     }
 
     private emitEvent(projectId: string, event: ProjectEvent) {
-        this.server.to(this.getRoomName(projectId)).emit('project:event', event);
+        this.server
+            .to(this.getRoomName(projectId))
+            .emit('project:event', event);
     }
 
     private getRoomName(projectId: string) {

@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
-
+import {
+    UnauthorizedException,
+    NotFoundException,
+    ConflictException,
+} from '@nestjs/common';
 
 @Injectable()
 export class WorkspacesService {
-    constructor(
-        private readonly prisma: PrismaService,
-    ) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(name: string, userId: string) {
         return this.prisma.workspace.create({
@@ -112,7 +113,7 @@ export class WorkspacesService {
         return this.prisma.workspaceMember.create({
             data: {
                 userId: user.id,
-                workspaceId,    
+                workspaceId,
             },
         });
     }

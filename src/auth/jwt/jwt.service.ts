@@ -9,7 +9,6 @@ export class AuthJwtService {
         private readonly config: ConfigService,
     ) {}
 
-
     //FIX: SET ACCESS TOKEN TIME TO 15m
     signAccessToken(payload: object) {
         return this.jwt.sign(payload, {

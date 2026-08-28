@@ -7,9 +7,7 @@ import { UnauthorizedException } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService,
-    ) {}
+    constructor(private readonly authService: AuthService) {}
 
     @Post('register')
     register(@Body() dto: RegisterDto) {
@@ -21,8 +19,7 @@ export class AuthController {
         @Body() dto: LoginDto,
         @Res({ passthrough: true }) response: Response,
     ) {
-        const { accessToken, refreshToken } =
-            await this.authService.login(dto);
+        const { accessToken, refreshToken } = await this.authService.login(dto);
 
         response.cookie('refresh_token', refreshToken, {
             httpOnly: true,
