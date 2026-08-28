@@ -1,7 +1,4 @@
-import {
-    ConflictException,
-    NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 import { WorkspacesService } from './workspaces.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -34,9 +31,7 @@ describe('WorkspacesService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        service = new WorkspacesService(
-            prisma as unknown as PrismaService,
-        );
+        service = new WorkspacesService(prisma as unknown as PrismaService);
     });
 
     describe('create', () => {
@@ -48,10 +43,7 @@ describe('WorkspacesService', () => {
 
             prisma.workspace.create.mockResolvedValue(workspace);
 
-            const result = await service.create(
-                'Test workspace',
-                'user-1',
-            );
+            const result = await service.create('Test workspace', 'user-1');
 
             expect(result).toEqual(workspace);
 
@@ -145,14 +137,8 @@ describe('WorkspacesService', () => {
             prisma.workspaceMember.findUnique.mockResolvedValue(null);
 
             await expect(
-                service.update(
-                    'workspace-1',
-                    'user-1',
-                    'New name',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Workspace not found'),
-            );
+                service.update('workspace-1', 'user-1', 'New name'),
+            ).rejects.toThrow(new NotFoundException('Workspace not found'));
 
             expect(prisma.workspace.update).not.toHaveBeenCalled();
         });
@@ -168,9 +154,7 @@ describe('WorkspacesService', () => {
                     'current-user',
                     'test@example.com',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('Workspace not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('Workspace not found'));
 
             expect(prisma.user.findUnique).not.toHaveBeenCalled();
         });
@@ -188,9 +172,7 @@ describe('WorkspacesService', () => {
                     'current-user',
                     'test@example.com',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('User not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('User not found'));
         });
 
         it('should throw when user is already a member', async () => {
@@ -271,15 +253,13 @@ describe('WorkspacesService', () => {
             };
 
             prisma.$transaction.mockImplementation(
-                async (callback) => callback(tx),
+                (callback: (tx: typeof tx) => unknown) => callback(tx),
             );
 
             await expect(
                 service.leave('workspace-1', 'user-1'),
             ).rejects.toThrow(
-                new NotFoundException(
-                    'You are not a member of this workspace',
-                ),
+                new NotFoundException('You are not a member of this workspace'),
             );
         });
 
@@ -302,13 +282,10 @@ describe('WorkspacesService', () => {
             };
 
             prisma.$transaction.mockImplementation(
-                async (callback) => callback(tx),
+                (callback: (tx: typeof tx) => unknown) => callback(tx),
             );
 
-            const result = await service.leave(
-                'workspace-1',
-                'user-1',
-            );
+            const result = await service.leave('workspace-1', 'user-1');
 
             expect(result).toEqual({
                 message: 'You left and the workspace was deleted',
@@ -338,7 +315,7 @@ describe('WorkspacesService', () => {
             };
 
             prisma.$transaction.mockImplementation(
-                async (callback) => callback(tx),
+                (callback: (tx: typeof tx) => unknown) => callback(tx),
             );
 
             await expect(
@@ -372,13 +349,10 @@ describe('WorkspacesService', () => {
             };
 
             prisma.$transaction.mockImplementation(
-                async (callback) => callback(tx),
+                (callback: (tx: typeof tx) => unknown) => callback(tx),
             );
 
-            const result = await service.leave(
-                'workspace-1',
-                'user-1',
-            );
+            const result = await service.leave('workspace-1', 'user-1');
 
             expect(result).toEqual({
                 message: 'You left the workspace',
@@ -399,13 +373,8 @@ describe('WorkspacesService', () => {
             prisma.workspaceMember.findUnique.mockResolvedValue(null);
 
             await expect(
-                service.delete(
-                    'workspace-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Workspace not found'),
-            );
+                service.delete('workspace-1', 'user-1'),
+            ).rejects.toThrow(new NotFoundException('Workspace not found'));
 
             expect(prisma.workspace.delete).not.toHaveBeenCalled();
         });
@@ -420,14 +389,9 @@ describe('WorkspacesService', () => {
                 name: 'Workspace',
             };
 
-            prisma.workspace.delete.mockResolvedValue(
-                deletedWorkspace,
-            );
+            prisma.workspace.delete.mockResolvedValue(deletedWorkspace);
 
-            const result = await service.delete(
-                'workspace-1',
-                'user-1',
-            );
+            const result = await service.delete('workspace-1', 'user-1');
 
             expect(result).toEqual(deletedWorkspace);
 

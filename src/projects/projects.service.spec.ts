@@ -42,15 +42,21 @@ describe('ProjectsService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        service = new ProjectsService(
-            prisma as unknown as PrismaService,
-        );
+        service = new ProjectsService(prisma as unknown as PrismaService);
     });
 
-    const setupTransaction = (tx: any) => {
-        prisma.$transaction.mockImplementation(
-            async (callback) => callback(tx),
-        );
+    const setupTransaction = (tx: unknown) => {
+        prisma.$transaction.mockImplementation((callback: unknown) => {
+            if (typeof callback !== 'function') {
+                throw new Error('Expected transaction callback');
+            }
+
+            const transactionCallback = callback as (
+                transaction: unknown,
+            ) => unknown;
+
+            return transactionCallback(tx);
+        });
     };
 
     describe('create', () => {
@@ -64,14 +70,8 @@ describe('ProjectsService', () => {
             setupTransaction(tx);
 
             await expect(
-                service.create(
-                    'workspace-1',
-                    'user-1',
-                    'Project',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Workspace not found'),
-            );
+                service.create('workspace-1', 'user-1', 'Project'),
+            ).rejects.toThrow(new NotFoundException('Workspace not found'));
         });
 
         it('should create project and assign owner', async () => {
@@ -146,9 +146,7 @@ describe('ProjectsService', () => {
 
             await expect(
                 service.findAll('workspace-1', 'user-1'),
-            ).rejects.toThrow(
-                new NotFoundException('Workspace not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('Workspace not found'));
 
             expect(prisma.project.findMany).not.toHaveBeenCalled();
         });
@@ -167,10 +165,7 @@ describe('ProjectsService', () => {
 
             prisma.project.findMany.mockResolvedValue(projects);
 
-            const result = await service.findAll(
-                'workspace-1',
-                'user-1',
-            );
+            const result = await service.findAll('workspace-1', 'user-1');
 
             expect(result).toEqual(projects);
 
@@ -198,9 +193,7 @@ describe('ProjectsService', () => {
                     'test@example.com',
                 ),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can add members',
-                ),
+                new ForbiddenException('Only project owner can add members'),
             );
         });
 
@@ -226,9 +219,7 @@ describe('ProjectsService', () => {
                     'user-1',
                     'test@example.com',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('Project not found'));
         });
 
         it('should throw when user does not exist', async () => {
@@ -259,9 +250,7 @@ describe('ProjectsService', () => {
                     'user-1',
                     'test@example.com',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('User not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('User not found'));
         });
 
         it('should reject user who is not in workspace', async () => {
@@ -299,9 +288,7 @@ describe('ProjectsService', () => {
                     'test@example.com',
                 ),
             ).rejects.toThrow(
-                new ConflictException(
-                    'User is not a member of this workspace',
-                ),
+                new ConflictException('User is not a member of this workspace'),
             );
         });
 
@@ -443,9 +430,7 @@ describe('ProjectsService', () => {
                     'MEMBER',
                 ),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can change roles',
-                ),
+                new ForbiddenException('Only project owner can change roles'),
             );
         });
 
@@ -472,9 +457,7 @@ describe('ProjectsService', () => {
                     'user-2',
                     'MEMBER',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('Project not found'));
         });
 
         it('should throw when target member does not exist', async () => {
@@ -546,9 +529,7 @@ describe('ProjectsService', () => {
                     'MEMBER',
                 ),
             ).rejects.toThrow(
-                new ConflictException(
-                    'Project must have at least one owner',
-                ),
+                new ConflictException('Project must have at least one owner'),
             );
 
             expect(tx.projectMember.update).not.toHaveBeenCalled();
@@ -634,9 +615,7 @@ describe('ProjectsService', () => {
                     'user-2',
                 ),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can remove members',
-                ),
+                new ForbiddenException('Only project owner can remove members'),
             );
         });
 
@@ -707,9 +686,7 @@ describe('ProjectsService', () => {
                     'user-2',
                 ),
             ).rejects.toThrow(
-                new ConflictException(
-                    'Project must have at least one owner',
-                ),
+                new ConflictException('Project must have at least one owner'),
             );
 
             expect(tx.projectMember.delete).not.toHaveBeenCalled();
@@ -766,14 +743,8 @@ describe('ProjectsService', () => {
             prisma.projectMember.findUnique.mockResolvedValue(null);
 
             await expect(
-                service.getById(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+                service.getById('workspace-1', 'project-1', 'user-1'),
+            ).rejects.toThrow(new NotFoundException('Project not found'));
 
             expect(prisma.project.findFirst).not.toHaveBeenCalled();
         });
@@ -786,14 +757,8 @@ describe('ProjectsService', () => {
             prisma.project.findFirst.mockResolvedValue(null);
 
             await expect(
-                service.getById(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+                service.getById('workspace-1', 'project-1', 'user-1'),
+            ).rejects.toThrow(new NotFoundException('Project not found'));
         });
 
         it('should return project', async () => {
@@ -838,9 +803,7 @@ describe('ProjectsService', () => {
                     'New name',
                 ),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can manage project',
-                ),
+                new ForbiddenException('Only project owner can manage project'),
             );
 
             expect(prisma.project.update).not.toHaveBeenCalled();
@@ -860,9 +823,7 @@ describe('ProjectsService', () => {
                     'user-1',
                     'New name',
                 ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+            ).rejects.toThrow(new NotFoundException('Project not found'));
         });
 
         it('should update project', async () => {
@@ -908,15 +869,9 @@ describe('ProjectsService', () => {
             });
 
             await expect(
-                service.delete(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                ),
+                service.delete('workspace-1', 'project-1', 'user-1'),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can manage project',
-                ),
+                new ForbiddenException('Only project owner can manage project'),
             );
 
             expect(prisma.project.delete).not.toHaveBeenCalled();
@@ -930,14 +885,8 @@ describe('ProjectsService', () => {
             prisma.project.findFirst.mockResolvedValue(null);
 
             await expect(
-                service.delete(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                new NotFoundException('Project not found'),
-            );
+                service.delete('workspace-1', 'project-1', 'user-1'),
+            ).rejects.toThrow(new NotFoundException('Project not found'));
         });
 
         it('should delete project', async () => {

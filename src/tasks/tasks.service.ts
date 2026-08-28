@@ -95,13 +95,7 @@ export class TasksService {
             throw new NotFoundException('Project not found');
         }
 
-        const {
-            cursor,
-            limit = 20,
-            status,
-            priority,
-            assigneeId,
-        } = query;
+        const { cursor, limit = 20, status, priority, assigneeId } = query;
 
         const take = Math.min(Math.max(limit, 1), 50) + 1;
 
@@ -147,19 +141,14 @@ export class TasksService {
 
         const hasMore = tasks.length > limit;
 
-        const items = hasMore
-            ? tasks.slice(0, limit)
-            : tasks;
+        const items = hasMore ? tasks.slice(0, limit) : tasks;
 
         return {
             items,
-            nextCursor: hasMore
-                ? (items[items.length - 1]?.id ?? null)
-                : null,
+            nextCursor: hasMore ? (items[items.length - 1]?.id ?? null) : null,
             hasMore,
         };
     }
-    
 
     async create(
         workspaceId: string,
@@ -301,16 +290,14 @@ export class TasksService {
             const oldStatus = task.status;
 
             if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
-                const workspaceMember = await tx.workspaceMember.findUnique(
-                    {
-                        where: {
-                            userId_workspaceId: {
-                                userId: dto.assigneeId,
-                                workspaceId,
-                            },
+                const workspaceMember = await tx.workspaceMember.findUnique({
+                    where: {
+                        userId_workspaceId: {
+                            userId: dto.assigneeId,
+                            workspaceId,
                         },
                     },
-                );
+                });
 
                 if (!workspaceMember) {
                     throw new ConflictException(
@@ -392,10 +379,7 @@ export class TasksService {
         this.realtimeGateway.emitTaskChanged(projectId, task);
 
         if (statusHistory) {
-            this.realtimeGateway.emitHistoryCreated(
-                projectId,
-                statusHistory,
-            );
+            this.realtimeGateway.emitHistoryCreated(projectId, statusHistory);
         }
         return task;
     }

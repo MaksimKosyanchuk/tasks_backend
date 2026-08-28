@@ -33,6 +33,18 @@ type ProjectEvent = {
     history?: unknown;
 };
 
+type SocketData = {
+    userId?: string;
+    projectRoom?: string;
+};
+
+type AuthenticatedSocket = Socket<
+    Record<string, never>,
+    Record<string, never>,
+    Record<string, never>,
+    SocketData
+>;
+
 @Injectable()
 @WebSocketGateway({
     cors: {
@@ -51,10 +63,10 @@ export class TaskRealtimeGateway
         private readonly authJwtService: AuthJwtService,
     ) {}
 
-    async handleConnection(client: Socket) {
-        const token = client.handshake.auth?.token;
+    handleConnection(client: AuthenticatedSocket) {
+        const token: unknown = client.handshake.auth?.token;
 
-        if (!token) {
+        if (typeof token !== 'string' || !token) {
             client.disconnect(true);
             return;
         }
@@ -70,9 +82,9 @@ export class TaskRealtimeGateway
         }
     }
 
-    handleDisconnect(client: Socket) {
+    handleDisconnect(client: AuthenticatedSocket) {
         if (client.data.projectRoom) {
-            client.leave(client.data.projectRoom);
+            void client.leave(client.data.projectRoom);
         }
     }
 
@@ -82,7 +94,7 @@ export class TaskRealtimeGateway
         data: {
             projectId: string;
         },
-        @ConnectedSocket() client: Socket,
+        @ConnectedSocket() client: AuthenticatedSocket,
     ) {
         if (!client.data.userId) {
             throw new UnauthorizedException('Unauthorized');
@@ -103,7 +115,8 @@ export class TaskRealtimeGateway
 
         const room = this.getRoomName(data.projectId);
 
-        client.join(room);
+        await client.join(room);
+
         client.data.projectRoom = room;
 
         return {
@@ -166,7 +179,9 @@ export class TaskRealtimeGateway
             type: 'comment.deleted',
             projectId,
             taskId,
-            comment: { id: commentId },
+            comment: {
+                id: commentId,
+            },
         });
     }
 

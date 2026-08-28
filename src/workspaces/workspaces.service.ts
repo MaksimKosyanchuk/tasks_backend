@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import {
-    UnauthorizedException,
-    NotFoundException,
-    ConflictException,
-} from '@nestjs/common';
+import { NotFoundException, ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class WorkspacesService {

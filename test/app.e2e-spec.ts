@@ -4,6 +4,29 @@ import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 
+type RegisterResponse = {
+    id: string;
+};
+
+type LoginResponse = {
+    accessToken: string;
+};
+
+type WorkspaceResponse = {
+    id: string;
+};
+
+type ProjectResponse = {
+    id: string;
+};
+
+type TaskResponse = {
+    id: string;
+    title: string;
+    projectId: string;
+    assigneeId: string;
+};
+
 describe('Critical flow (e2e)', () => {
     let app: INestApplication;
 
@@ -17,10 +40,9 @@ describe('Critical flow (e2e)', () => {
     const password = 'Password123';
 
     beforeAll(async () => {
-        const moduleFixture: TestingModule =
-            await Test.createTestingModule({
-                imports: [AppModule],
-            }).compile();
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
 
         app = moduleFixture.createNestApplication();
 
@@ -50,9 +72,12 @@ describe('Critical flow (e2e)', () => {
             })
             .expect(201);
 
-        expect(registerResponse.body).toBeDefined();
+        const registerBody = registerResponse.body as RegisterResponse;
 
-        userId = registerResponse.body.id;
+        expect(registerBody).toBeDefined();
+        expect(registerBody.id).toBeDefined();
+
+        userId = registerBody.id;
 
         // 2. LOGIN
 
@@ -64,9 +89,11 @@ describe('Critical flow (e2e)', () => {
             })
             .expect(201);
 
-        expect(loginResponse.body.accessToken).toBeDefined();
+        const loginBody = loginResponse.body as LoginResponse;
 
-        accessToken = loginResponse.body.accessToken;
+        expect(loginBody.accessToken).toBeDefined();
+
+        accessToken = loginBody.accessToken;
 
         // 3. CREATE WORKSPACE
 
@@ -78,9 +105,11 @@ describe('Critical flow (e2e)', () => {
             })
             .expect(201);
 
-        expect(workspaceResponse.body.id).toBeDefined();
+        const workspaceBody = workspaceResponse.body as WorkspaceResponse;
 
-        workspaceId = workspaceResponse.body.id;
+        expect(workspaceBody.id).toBeDefined();
+
+        workspaceId = workspaceBody.id;
 
         // 4. CREATE PROJECT
 
@@ -93,16 +122,16 @@ describe('Critical flow (e2e)', () => {
             })
             .expect(201);
 
-        expect(projectResponse.body.id).toBeDefined();
+        const projectBody = projectResponse.body as ProjectResponse;
 
-        projectId = projectResponse.body.id;
+        expect(projectBody.id).toBeDefined();
+
+        projectId = projectBody.id;
 
         // 5. CREATE TASK
 
         const taskResponse = await request(app.getHttpServer())
-            .post(
-                `/workspaces/${workspaceId}/projects/${projectId}/tasks`,
-            )
+            .post(`/workspaces/${workspaceId}/projects/${projectId}/tasks`)
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
                 title: 'E2E Task',
@@ -113,9 +142,11 @@ describe('Critical flow (e2e)', () => {
             })
             .expect(201);
 
-        expect(taskResponse.body.id).toBeDefined();
-        expect(taskResponse.body.title).toBe('E2E Task');
-        expect(taskResponse.body.projectId).toBe(projectId);
-        expect(taskResponse.body.assigneeId).toBe(userId);
+        const taskBody = taskResponse.body as TaskResponse;
+
+        expect(taskBody.id).toBeDefined();
+        expect(taskBody.title).toBe('E2E Task');
+        expect(taskBody.projectId).toBe(projectId);
+        expect(taskBody.assigneeId).toBe(userId);
     });
 });

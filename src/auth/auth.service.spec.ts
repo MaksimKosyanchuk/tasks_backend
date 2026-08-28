@@ -122,11 +122,19 @@ describe('AuthService', () => {
             usersService.findByEmail.mockResolvedValue(null);
             usersService.findByNickName.mockResolvedValue(null);
 
-            usersService.create.mockResolvedValue({
-                id: 'user-1',
-                nickName: 'maks',
-                email: 'maks@test.com',
-            });
+            let createdPassword = '';
+
+            usersService.create.mockImplementation(
+                (_email: string, _nickName: string, password: string) => {
+                    createdPassword = password;
+
+                    return Promise.resolve({
+                        id: 'user-1',
+                        nickName: 'maks',
+                        email: 'maks@test.com',
+                    });
+                },
+            );
 
             await service.register({
                 email: 'maks@test.com',
@@ -134,14 +142,11 @@ describe('AuthService', () => {
                 password: 'password123',
             });
 
-            const createdPassword =
-                usersService.create.mock.calls[0][2];
-
             expect(createdPassword).not.toBe('password123');
 
-            expect(
-                await bcrypt.compare('password123', createdPassword),
-            ).toBe(true);
+            expect(await bcrypt.compare('password123', createdPassword)).toBe(
+                true,
+            );
         });
     });
 
@@ -228,15 +233,10 @@ describe('AuthService', () => {
 
             usersService.findById.mockResolvedValue({
                 id: 'user-1',
-                refreshTokenHash: await bcrypt.hash(
-                    'refresh-token',
-                    10,
-                ),
+                refreshTokenHash: await bcrypt.hash('refresh-token', 10),
             });
 
-            authJwtService.signAccessToken.mockReturnValue(
-                'new-access-token',
-            );
+            authJwtService.signAccessToken.mockReturnValue('new-access-token');
 
             const result = await service.refresh('refresh-token');
 
@@ -244,9 +244,7 @@ describe('AuthService', () => {
                 accessToken: 'new-access-token',
             });
 
-            expect(
-                authJwtService.signAccessToken,
-            ).toHaveBeenCalledWith({
+            expect(authJwtService.signAccessToken).toHaveBeenCalledWith({
                 sub: 'user-1',
             });
         });
@@ -256,9 +254,9 @@ describe('AuthService', () => {
                 throw new Error('Invalid token');
             });
 
-            await expect(
-                service.refresh('invalid-token'),
-            ).rejects.toThrow(UnauthorizedException);
+            await expect(service.refresh('invalid-token')).rejects.toThrow(
+                UnauthorizedException,
+            );
 
             expect(usersService.findById).not.toHaveBeenCalled();
         });
@@ -270,9 +268,9 @@ describe('AuthService', () => {
 
             usersService.findById.mockResolvedValue(null);
 
-            await expect(
-                service.refresh('refresh-token'),
-            ).rejects.toThrow(UnauthorizedException);
+            await expect(service.refresh('refresh-token')).rejects.toThrow(
+                UnauthorizedException,
+            );
         });
 
         it('should throw UnauthorizedException if refresh token hash does not match', async () => {
@@ -282,15 +280,12 @@ describe('AuthService', () => {
 
             usersService.findById.mockResolvedValue({
                 id: 'user-1',
-                refreshTokenHash: await bcrypt.hash(
-                    'another-token',
-                    10,
-                ),
+                refreshTokenHash: await bcrypt.hash('another-token', 10),
             });
 
-            await expect(
-                service.refresh('refresh-token'),
-            ).rejects.toThrow(UnauthorizedException);
+            await expect(service.refresh('refresh-token')).rejects.toThrow(
+                UnauthorizedException,
+            );
 
             expect(authJwtService.signAccessToken).not.toHaveBeenCalled();
         });
@@ -306,9 +301,9 @@ describe('AuthService', () => {
 
             await service.logout('refresh-token');
 
-            expect(
-                usersService.clearRefreshTokenHash,
-            ).toHaveBeenCalledWith('user-1');
+            expect(usersService.clearRefreshTokenHash).toHaveBeenCalledWith(
+                'user-1',
+            );
         });
 
         it('should do nothing if refresh token is invalid', async () => {
@@ -318,10 +313,7 @@ describe('AuthService', () => {
 
             await service.logout('invalid-token');
 
-            expect(
-                usersService.clearRefreshTokenHash,
-            ).not.toHaveBeenCalled();
+            expect(usersService.clearRefreshTokenHash).not.toHaveBeenCalled();
         });
     });
-
 });

@@ -1,12 +1,23 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
-import type { Response, Request } from 'express';
+import {
+    Body,
+    Controller,
+    Post,
+    Req,
+    Res,
+    UnauthorizedException,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
+
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { UnauthorizedException } from '@nestjs/common';
 
-import { UseGuards } from '@nestjs/common';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+type AuthRequest = Request & {
+    cookies: {
+        refresh_token?: string;
+    };
+};
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +27,7 @@ export class AuthController {
     register(@Body() dto: RegisterDto) {
         return this.authService.register(dto);
     }
-    
+
     @Post('login')
     @Throttle({
         default: {
@@ -43,7 +54,7 @@ export class AuthController {
     }
 
     @Post('refresh')
-    async refresh(@Req() request: Request) {
+    async refresh(@Req() request: AuthRequest) {
         const refreshToken = request.cookies.refresh_token;
 
         if (!refreshToken) {
@@ -55,7 +66,7 @@ export class AuthController {
 
     @Post('logout')
     async logout(
-        @Req() request: Request,
+        @Req() request: AuthRequest,
         @Res({ passthrough: true }) response: Response,
     ) {
         const refreshToken = request.cookies.refresh_token;

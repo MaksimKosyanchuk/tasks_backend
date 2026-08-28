@@ -1,9 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-    ConflictException,
-    ForbiddenException,
-    NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 
 import { TasksService } from './tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -48,40 +44,26 @@ describe('TasksService', () => {
     };
 
     beforeEach(async () => {
-        const module: TestingModule =
-            await Test.createTestingModule({
-                providers: [
-                    TasksService,
-                    {
-                        provide: PrismaService,
-                        useValue: prismaMock,
-                    },
-                    {
-                        provide: TaskRealtimeGateway,
-                        useValue: realtimeGatewayMock,
-                    },
-                ],
-            }).compile();
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                TasksService,
+                {
+                    provide: PrismaService,
+                    useValue: prismaMock,
+                },
+                {
+                    provide: TaskRealtimeGateway,
+                    useValue: realtimeGatewayMock,
+                },
+            ],
+        }).compile();
 
-        service = module.get<TasksService>(
-            TasksService,
-        );
+        service = module.get<TasksService>(TasksService);
 
         jest.clearAllMocks();
 
-        /*
-         * Имитируем Prisma $transaction.
-         *
-         * В реальном Prisma:
-         *
-         * prisma.$transaction(async (tx) => {
-         *     ...
-         * });
-         *
-         * Здесь просто передаём наш mock как tx.
-         */
         prismaMock.$transaction.mockImplementation(
-            async (callback) =>
+            (callback: (tx: typeof prismaMock) => unknown) =>
                 callback(prismaMock),
         );
     });
@@ -136,9 +118,7 @@ describe('TasksService', () => {
                 assigneeId: 'user-2',
             };
 
-            prismaMock.task.create.mockResolvedValue(
-                task,
-            );
+            prismaMock.task.create.mockResolvedValue(task);
 
             const result = await service.create(
                 'workspace-1',
@@ -149,13 +129,9 @@ describe('TasksService', () => {
 
             expect(result).toEqual(task);
 
-            expect(
-                prismaMock.task.create,
-            ).toHaveBeenCalled();
+            expect(prismaMock.task.create).toHaveBeenCalled();
 
-            expect(
-                realtimeGatewayMock.emitTaskCreated,
-            ).toHaveBeenCalledWith(
+            expect(realtimeGatewayMock.emitTaskCreated).toHaveBeenCalledWith(
                 'project-1',
                 task,
             );
@@ -176,14 +152,10 @@ describe('TasksService', () => {
                     dto as any,
                 ),
             ).rejects.toThrow(
-                new ForbiddenException(
-                    'Only project owner can manage tasks',
-                ),
+                new ForbiddenException('Only project owner can manage tasks'),
             );
 
-            expect(
-                prismaMock.task.create,
-            ).not.toHaveBeenCalled();
+            expect(prismaMock.task.create).not.toHaveBeenCalled();
         });
 
         it('should reject assignee who is not a project member', async () => {
@@ -228,9 +200,7 @@ describe('TasksService', () => {
                 ),
             );
 
-            expect(
-                prismaMock.task.create,
-            ).not.toHaveBeenCalled();
+            expect(prismaMock.task.create).not.toHaveBeenCalled();
         });
     });
 
@@ -260,9 +230,7 @@ describe('TasksService', () => {
                 projectId: 'project-1',
             };
 
-            prismaMock.task.update.mockResolvedValue(
-                updatedTask,
-            );
+            prismaMock.task.update.mockResolvedValue(updatedTask);
 
             const result = await service.update(
                 'workspace-1',
@@ -271,16 +239,12 @@ describe('TasksService', () => {
                 'user-1',
                 {
                     title: 'Updated task',
-                } as any,
+                },
             );
 
-            expect(result).toEqual(
-                updatedTask,
-            );
+            expect(result).toEqual(updatedTask);
 
-            expect(
-                prismaMock.task.update,
-            ).toHaveBeenCalledWith(
+            expect(prismaMock.task.update).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: {
                         id: 'task-1',
@@ -288,9 +252,7 @@ describe('TasksService', () => {
                 }),
             );
 
-            expect(
-                realtimeGatewayMock.emitTaskChanged,
-            ).toHaveBeenCalledWith(
+            expect(realtimeGatewayMock.emitTaskChanged).toHaveBeenCalledWith(
                 'project-1',
                 updatedTask,
             );
@@ -304,22 +266,12 @@ describe('TasksService', () => {
             });
 
             await expect(
-                service.update(
-                    'workspace-1',
-                    'project-1',
-                    'task-1',
-                    'user-1',
-                    {
-                        title: 'Updated',
-                    } as any,
-                ),
-            ).rejects.toThrow(
-                'Only project owner can manage tasks',
-            );
+                service.update('workspace-1', 'project-1', 'task-1', 'user-1', {
+                    title: 'Updated',
+                } as any),
+            ).rejects.toThrow('Only project owner can manage tasks');
 
-            expect(
-                prismaMock.task.update,
-            ).not.toHaveBeenCalled();
+            expect(prismaMock.task.update).not.toHaveBeenCalled();
         });
     });
 
@@ -347,9 +299,7 @@ describe('TasksService', () => {
                 projectId: 'project-1',
             };
 
-            prismaMock.task.delete.mockResolvedValue(
-                deletedTask,
-            );
+            prismaMock.task.delete.mockResolvedValue(deletedTask);
 
             const result = await service.delete(
                 'workspace-1',
@@ -358,21 +308,15 @@ describe('TasksService', () => {
                 'user-1',
             );
 
-            expect(result).toEqual(
-                deletedTask,
-            );
+            expect(result).toEqual(deletedTask);
 
-            expect(
-                prismaMock.task.delete,
-            ).toHaveBeenCalledWith({
+            expect(prismaMock.task.delete).toHaveBeenCalledWith({
                 where: {
                     id: 'task-1',
                 },
             });
 
-            expect(
-                realtimeGatewayMock.emitTaskDeleted,
-            ).toHaveBeenCalledWith(
+            expect(realtimeGatewayMock.emitTaskDeleted).toHaveBeenCalledWith(
                 'project-1',
                 'task-1',
             );
@@ -386,41 +330,22 @@ describe('TasksService', () => {
             });
 
             await expect(
-                service.delete(
-                    'workspace-1',
-                    'project-1',
-                    'task-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                'Only project owner can manage tasks',
-            );
+                service.delete('workspace-1', 'project-1', 'task-1', 'user-1'),
+            ).rejects.toThrow('Only project owner can manage tasks');
 
-            expect(
-                prismaMock.task.delete,
-            ).not.toHaveBeenCalled();
+            expect(prismaMock.task.delete).not.toHaveBeenCalled();
         });
     });
 
     describe('list', () => {
         it('should reject user who is not a project member', async () => {
-            prismaMock.projectMember.findUnique.mockResolvedValue(
-                null,
-            );
+            prismaMock.projectMember.findUnique.mockResolvedValue(null);
 
             await expect(
-                service.list(
-                    'workspace-1',
-                    'project-1',
-                    'user-1',
-                ),
-            ).rejects.toThrow(
-                'Project not found',
-            );
+                service.list('workspace-1', 'project-1', 'user-1'),
+            ).rejects.toThrow('Project not found');
 
-            expect(
-                prismaMock.task.findMany,
-            ).not.toHaveBeenCalled();
+            expect(prismaMock.task.findMany).not.toHaveBeenCalled();
         });
 
         it('should return paginated tasks for project member', async () => {
@@ -441,9 +366,7 @@ describe('TasksService', () => {
                 },
             ];
 
-            prismaMock.task.findMany.mockResolvedValue(
-                tasks,
-            );
+            prismaMock.task.findMany.mockResolvedValue(tasks);
 
             const result = await service.list(
                 'workspace-1',
