@@ -1,4 +1,5 @@
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 import { TaskPriority, TaskStatus } from '@prisma/client';
 
 export class GetTasksDto {
@@ -7,6 +8,7 @@ export class GetTasksDto {
     cursor?: string;
 
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     @Min(1)
     @Max(50)
