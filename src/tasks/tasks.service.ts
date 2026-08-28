@@ -95,7 +95,13 @@ export class TasksService {
             throw new NotFoundException('Project not found');
         }
 
-        const { cursor, limit = 20, status, priority, assigneeId } = query;
+        const {
+            cursor,
+            limit = 20,
+            status,
+            priority,
+            assigneeId,
+        } = query ?? {};
 
         const take = Math.min(Math.max(limit, 1), 50) + 1;
 
