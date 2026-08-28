@@ -63,6 +63,7 @@ backend/
 │
 ├── src/
 │   ├── auth/
+|   ├── comments/
 │   ├── users/
 │   ├── workspaces/
 │   ├── projects/
@@ -254,6 +255,35 @@ GET /tasks?limit=20&cursor=<cursor>
 ```
 
 Це дозволяє ефективно працювати з великою кількістю задач.
+
+---
+
+# Comments
+
+Кожна задача може містити коментарі.
+Користувачі, які мають доступ до відповідного проєкту, можуть переглядати та створювати коментарі.
+Автор коментаря може редагувати або видаляти власний коментар.
+Основні endpoints:
+
+```text
+GET    /workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments
+```
+
+```text
+POST   /workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments
+```
+
+```text
+PATCH /workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments/:commentId
+```
+
+```text
+DELETE /workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments/:commentId
+```
+
+Для всіх endpoints використовується JWT authentication та AccessTokenGuard.
+Перед виконанням операцій backend перевіряє доступ користувача до відповідного Workspace, Project та Task.
+При редагуванні та видаленні коментаря додатково перевіряється право користувача змінювати відповідний коментар.
 
 ---
 
