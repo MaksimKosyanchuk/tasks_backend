@@ -19,6 +19,13 @@ type AuthRequest = Request & {
     };
 };
 
+const REFRESH_TOKEN_COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax' as const,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
@@ -41,12 +48,7 @@ export class AuthController {
     ) {
         const { accessToken, refreshToken } = await this.authService.login(dto);
 
-        response.cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        response.cookie('refresh_token', refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
 
         return {
             accessToken,
@@ -54,14 +56,24 @@ export class AuthController {
     }
 
     @Post('refresh')
-    async refresh(@Req() request: AuthRequest) {
+    async refresh(
+        @Req() request: AuthRequest,
+        @Res({ passthrough: true }) response: Response,
+    ) {
         const refreshToken = request.cookies.refresh_token;
 
         if (!refreshToken) {
             throw new UnauthorizedException('Refresh token not found');
         }
 
-        return this.authService.refresh(refreshToken);
+        const { accessToken, refreshToken: newRefreshToken } =
+            await this.authService.refresh(refreshToken);
+
+        response.cookie('refresh_token', newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+
+        return {
+            accessToken,
+        };
     }
 
     @Post('logout')

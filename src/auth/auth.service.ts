@@ -110,8 +110,20 @@ export class AuthService {
             sub: user.id,
         });
 
+        const newRefreshToken = this.authJwtService.signRefreshToken({
+            sub: user.id,
+        });
+
+        const newRefreshTokenHash = await bcrypt.hash(newRefreshToken, 10);
+
+        await this.usersService.updateRefreshTokenHash(
+            user.id,
+            newRefreshTokenHash,
+        );
+
         return {
             accessToken,
+            refreshToken: newRefreshToken,
         };
     }
 
