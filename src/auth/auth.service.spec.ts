@@ -226,13 +226,15 @@ describe('AuthService', () => {
     });
 
     describe('refresh', () => {
-        it('should return a new access token and rotate the refresh token', async () => {
+        it('should return a new access token, user and rotate the refresh token', async () => {
             authJwtService.verifyRefreshToken.mockReturnValue({
                 sub: 'user-1',
             });
 
             usersService.findById.mockResolvedValue({
                 id: 'user-1',
+                email: 'user@example.com',
+                nickName: 'maks',
                 refreshTokenHash: await bcrypt.hash('refresh-token', 10),
             });
 
@@ -246,6 +248,11 @@ describe('AuthService', () => {
             expect(result).toEqual({
                 accessToken: 'new-access-token',
                 refreshToken: 'new-refresh-token',
+                user: {
+                    id: 'user-1',
+                    email: 'user@example.com',
+                    nickName: 'maks',
+                },
             });
 
             expect(authJwtService.signAccessToken).toHaveBeenCalledWith({
@@ -293,6 +300,8 @@ describe('AuthService', () => {
 
             usersService.findById.mockResolvedValue({
                 id: 'user-1',
+                email: 'user@example.com',
+                nickName: 'maks',
                 refreshTokenHash: await bcrypt.hash('another-token', 10),
             });
 

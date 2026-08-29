@@ -129,6 +129,11 @@ export class AuthController {
         schema: {
             example: {
                 accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                user: {
+                    id: '693b1053-0190-4130-b850-a9ee728690b1',
+                    email: 'user@example.com',
+                    nickName: 'maks',
+                },
             },
         },
     })
@@ -146,7 +151,7 @@ export class AuthController {
             throw new UnauthorizedException('Refresh token not found');
         }
 
-        const { accessToken, refreshToken: newRefreshToken } =
+        const { accessToken, refreshToken: newRefreshToken, user } =
             await this.authService.refresh(refreshToken);
 
         response.cookie(
@@ -157,6 +162,7 @@ export class AuthController {
 
         return {
             accessToken,
+            user,
         };
     }
 

@@ -124,6 +124,11 @@ export class AuthService {
         return {
             accessToken,
             refreshToken: newRefreshToken,
+            user: {
+                id: user.id,
+                email: user.email,
+                nickName: user.nickName,
+            },
         };
     }
 
