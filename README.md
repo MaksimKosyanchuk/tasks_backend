@@ -441,6 +441,15 @@ http://localhost:3001
 
 # API
 
+Для API додана інтерактивна документація **Swagger / OpenAPI**.
+Swagger UI доступний за адресою:
+
+```text
+http://localhost:3001/api
+```
+
+На сторінці можна переглянути всі доступні endpoints, параметри запитів, request body, authentication та безпосередньо виконувати API-запити.
+
 ## Auth
 
 ```text
