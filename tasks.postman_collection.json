@@ -1,0 +1,1232 @@
+{
+  "info": {
+    "_postman_id": "016c1987-c043-4179-adcb-8cb47302e405",
+    "name": "New Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33374702",
+    "_collection_link": "https://go.postman.co/collection/33374702-016c1987-c043-4179-adcb-8cb47302e405?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nickName\": \"test\",\n    \"email\": \"test@gmail.com\",\n    \"password\": \"1231234123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/auth/register",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test1@gmail.com\",\n    \"password\": \"123123123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/auth/login",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_1d8y}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/auth/refresh",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/auth/logout",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workspaces",
+      "item": [
+        {
+          "name": "Get my workspaces",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create new workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"name\",\n    \"description\": \"description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/wokspaces",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "wokspaces"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"name\",\n    \"description\": \"description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add member to workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"email@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/members",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "members"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Leave from workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nickName\": \"test\",\n    \"email\": \"test@gmail.com\",\n    \"password\": \"1231234123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/members/me",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "members",
+                "me"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Create project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"name\",\n    \"description\": \"description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get my projects in workspace",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}{server/workspaces/:workspaceId/projects",
+              "host": [
+                "{{server}}{server"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get project by id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit project data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"name\",\n    \"description\": \"description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}{ser/workspaces/:workspaceId/projects/:projectId",
+              "host": [
+                "{{server}}{ser"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nickName\": \"test\",\n    \"email\": \"test@gmail.com\",\n    \"password\": \"1231234123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add member to project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"email@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/members",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "members"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change member role",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role\": \"OWNER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/members/:userId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "members",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                },
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete member from project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/members/:userId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "members",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                },
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Comments",
+          "item": [
+            {
+              "name": "Get task comments",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{server}}{server/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments",
+                  "host": [
+                    "{{server}}{server"
+                  ],
+                  "path": [
+                    "workspaces",
+                    ":workspaceId",
+                    "projects",
+                    ":projectId",
+                    "tasks",
+                    ":taskId",
+                    "comments"
+                  ],
+                  "variable": [
+                    {
+                      "key": "workspaceId",
+                      "value": ""
+                    },
+                    {
+                      "key": "projectId",
+                      "value": ""
+                    },
+                    {
+                      "key": "taskId",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create comment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"content\": \"conetnt\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{server}}{serv/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments",
+                  "host": [
+                    "{{server}}{serv"
+                  ],
+                  "path": [
+                    "workspaces",
+                    ":workspaceId",
+                    "projects",
+                    ":projectId",
+                    "tasks",
+                    ":taskId",
+                    "comments"
+                  ],
+                  "variable": [
+                    {
+                      "key": "workspaceId",
+                      "value": ""
+                    },
+                    {
+                      "key": "projectId",
+                      "value": ""
+                    },
+                    {
+                      "key": "taskId",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Edit comment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"content\": \"conetnt\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments/:commentId",
+                  "host": [
+                    "{{server}}"
+                  ],
+                  "path": [
+                    "workspaces",
+                    ":workspaceId",
+                    "projects",
+                    ":projectId",
+                    "tasks",
+                    ":taskId",
+                    "comments",
+                    ":commentId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "workspaceId",
+                      "value": ""
+                    },
+                    {
+                      "key": "projectId",
+                      "value": ""
+                    },
+                    {
+                      "key": "taskId",
+                      "value": ""
+                    },
+                    {
+                      "key": "commentId",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete comment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/comments/:commentId",
+                  "host": [
+                    "{{server}}"
+                  ],
+                  "path": [
+                    "workspaces",
+                    ":workspaceId",
+                    "projects",
+                    ":projectId",
+                    "tasks",
+                    ":taskId",
+                    "comments",
+                    ":commentId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "workspaceId",
+                      "value": ""
+                    },
+                    {
+                      "key": "projectId",
+                      "value": ""
+                    },
+                    {
+                      "key": "taskId",
+                      "value": ""
+                    },
+                    {
+                      "key": "commentId",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get my tasks of project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server}}{server/workspaces/:workspaceId/projects/:projectId/tasks",
+              "host": [
+                "{{server}}{server"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "tasks"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create new task",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/tasks",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "tasks"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit task",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{server}}/workspaces/:workspaceId/projects/:projectId/tasks/:taskId",
+              "host": [
+                "{{server}}"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "tasks",
+                ":taskId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                },
+                {
+                  "key": "taskId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete task",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "/workspaces/:workspaceId/projects/:projectId/tasks/:taskId",
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "tasks",
+                ":taskId"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                },
+                {
+                  "key": "taskId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server}}{server/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/history",
+              "host": [
+                "{{server}}{server"
+              ],
+              "path": [
+                "workspaces",
+                ":workspaceId",
+                "projects",
+                ":projectId",
+                "tasks",
+                ":taskId",
+                "history"
+              ],
+              "variable": [
+                {
+                  "key": "workspaceId",
+                  "value": ""
+                },
+                {
+                  "key": "projectId",
+                  "value": ""
+                },
+                {
+                  "key": "taskId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{server}}/health",
+          "host": [
+            "{{server}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_1d8y",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_1d8y",
+      "secret": true
+    }
+  ]
+}
