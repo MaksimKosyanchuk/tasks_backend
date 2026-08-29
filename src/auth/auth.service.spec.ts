@@ -226,7 +226,7 @@ describe('AuthService', () => {
     });
 
     describe('refresh', () => {
-        it('should return a new access token', async () => {
+        it('should return a new access token and rotate the refresh token', async () => {
             authJwtService.verifyRefreshToken.mockReturnValue({
                 sub: 'user-1',
             });
@@ -237,16 +237,29 @@ describe('AuthService', () => {
             });
 
             authJwtService.signAccessToken.mockReturnValue('new-access-token');
+            authJwtService.signRefreshToken.mockReturnValue('new-refresh-token');
+
+            usersService.updateRefreshTokenHash.mockResolvedValue(undefined);
 
             const result = await service.refresh('refresh-token');
 
             expect(result).toEqual({
                 accessToken: 'new-access-token',
+                refreshToken: 'new-refresh-token',
             });
 
             expect(authJwtService.signAccessToken).toHaveBeenCalledWith({
                 sub: 'user-1',
             });
+
+            expect(authJwtService.signRefreshToken).toHaveBeenCalledWith({
+                sub: 'user-1',
+            });
+
+            expect(usersService.updateRefreshTokenHash).toHaveBeenCalledWith(
+                'user-1',
+                expect.any(String),
+            );
         });
 
         it('should throw UnauthorizedException if refresh token is invalid', async () => {

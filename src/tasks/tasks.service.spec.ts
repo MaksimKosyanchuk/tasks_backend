@@ -212,9 +212,7 @@ describe('TasksService', () => {
                     'user-1',
                     dto as any,
                 ),
-            ).rejects.toThrow(
-                'Assignee is not a member of this project',
-            );
+            ).rejects.toThrow('Assignee is not a member of this project');
 
             expect(prismaMock.task.create).not.toHaveBeenCalled();
         });
@@ -471,17 +469,12 @@ describe('TasksService', () => {
 
             prismaMock.task.findMany.mockResolvedValue([]);
 
-            await service.list(
-                'workspace-1',
-                'project-1',
-                'user-1',
-                {
-                    status: 'IN_PROGRESS',
-                    priority: 'HIGH',
-                    assigneeId: 'user-2',
-                    limit: 20,
-                } as any,
-            );
+            await service.list('workspace-1', 'project-1', 'user-1', {
+                status: 'IN_PROGRESS',
+                priority: 'HIGH',
+                assigneeId: 'user-2',
+                limit: 20,
+            } as any);
 
             expect(prismaMock.task.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({

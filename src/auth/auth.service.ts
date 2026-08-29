@@ -133,7 +133,9 @@ export class AuthService {
         }
 
         try {
-            const payload = this.authJwtService.verifyRefreshToken<{ sub: string }>(refreshToken);
+            const payload = this.authJwtService.verifyRefreshToken<{
+                sub: string;
+            }>(refreshToken);
 
             await this.usersService.clearRefreshTokenHash(payload.sub);
         } catch {
